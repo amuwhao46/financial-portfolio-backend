@@ -1,7 +1,10 @@
+import { finnhubQuoteSchema, finnhubSearchSchema } from "../schemas/stock";
+import type { FinnhubQuote, FinnhubSearch } from "../schemas/stock";
+
 const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
 const API_KEY = process.env.FINNHUB_API_KEY;
 
-export async function searchStocks(query: string) {
+export async function searchStocks(query: string): Promise<FinnhubSearch> {
   const response = await fetch(
     `${FINNHUB_BASE_URL}/search?q=${query}&exchange=US&token=${API_KEY}`
   );
@@ -9,10 +12,14 @@ export async function searchStocks(query: string) {
   if (!response.ok) {
     throw new Error("Failed to fetch stock search data");
   }
-  return await response.json();
+
+  const data = await response.json();
+  const validated = finnhubSearchSchema.parse(data);
+
+  return validated;
 }
 
-export async function getStockQuote(symbol: string) {
+export async function getStockQuote(symbol: string): Promise<FinnhubQuote> {
   const response = await fetch(
     `${FINNHUB_BASE_URL}/quote?symbol=${symbol}&token=${API_KEY}`
   );
@@ -20,5 +27,9 @@ export async function getStockQuote(symbol: string) {
   if (!response.ok) {
     throw new Error("Failed to fetch stock quote data");
   }
-  return await response.json();
+
+  const data = await response.json();
+  const validated = finnhubQuoteSchema.parse(data);
+
+  return validated;
 }
